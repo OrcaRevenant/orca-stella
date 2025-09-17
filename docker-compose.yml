@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  orca-stella-app:
+    build: .
+    container_name: orca-stella-multi-tool-agent
+    ports:
+      - "5001:5001"
+    environment:
+      - WEBHOOK_PORT=5001
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-your-webhook-secret-key}
+      - PYTHONPATH=/app/multi_tool_agent
+    volumes:
+      # Mount the chromadb directory for persistence
+      - ./parent_folder/multi_tool_agent/chromadb:/app/multi_tool_agent/chromadb
+      # Mount logs directory if you want to persist logs
+      - ./logs:/app/logs
+    # env_file:
+    #   - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - orca-revenant-network
+
+networks:
+  orca-revenant-network:
+    external: true
+
+volumes:
+  chromadb_data:
+    driver: local
+  logs_data:
+    driver: local
